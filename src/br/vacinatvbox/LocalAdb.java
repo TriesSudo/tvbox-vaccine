@@ -58,75 +58,67 @@ final class LocalAdb implements Closeable {
     }
 
     /**
-     * Connects to 127.0.0.1:5555. On Android 10 TV boxes, accepting the "Allow USB debugging?" prompt
-     * saves the key to /data/misc/adb/adb_keys without always replying CNXN on the first socket, so we
-     * retry short connections every 2.5s while the user approves the dialog on screen.
+     * Connects to 127.0.0.1:5555 using a single synchronized state-machine handshake.
+     * If listener == null (background check), it will NEVER send AUTH_RSAPUBLICKEY,
+     * preventing unexpected USB debugging popups or race conditions.
      */
-    static LocalAdb connect(Context c, int totalWaitMs, Listener listener) throws IOException {
+    static synchronized LocalAdb connect(Context c, int approvalMs, Listener listener) throws IOException {
         KeyPair keys = keys(c);
-        long deadline = System.currentTimeMillis() + totalWaitMs;
-        boolean notified = false;
-
-        while (true) {
-            Socket s = new Socket();
-            try {
-                s.connect(new InetSocketAddress("127.0.0.1", 5555), 2500);
-            } catch (IOException e) {
-                s.close();
-                throw new IOException("A Depuração USB está desativada (porta 5555 fechada). Ative em Configurações -> Opções do Desenvolvedor -> Depuração USB.");
-            }
-
-            LocalAdb adb = new LocalAdb(s);
-            try {
-                s.setSoTimeout(3000);
-                adb.send(CNXN, VERSION, MAX_DATA, "host::\0".getBytes(StandardCharsets.US_ASCII));
-                Message m = adb.read();
+        Socket s = new Socket();
+        try {
+            s.connect(new InetSocketAddress("127.0.0.1", 5555), 3000);
+        } catch (IOException e) {
+            s.close();
+            throw new IOException("USB Debugging is off (port 5555 closed). Enable in Settings -> Developer Options -> USB Debugging.");
+        }
+        LocalAdb adb;
+        try {
+            s.setSoTimeout(10_000);
+            adb = new LocalAdb(s);
+        } catch (IOException | RuntimeException e) {
+            s.close();
+            throw e;
+        }
+        try {
+            adb.send(CNXN, VERSION, MAX_DATA, "host::\0".getBytes(StandardCharsets.US_ASCII));
+            boolean signed = false, offeredKey = false;
+            while (true) {
+                Message m;
+                try {
+                    m = adb.read();
+                } catch (SocketTimeoutException e) {
+                    throw new IOException(offeredKey
+                        ? "The 'Allow USB debugging?' dialog was not confirmed in time on the TV screen."
+                        : "Internal ADB did not respond in time.");
+                }
                 if (m.command == CNXN) {
-                    s.setSoTimeout(15000);
+                    s.setSoTimeout(20_000);
                     return adb;
                 }
                 if (m.command == STLS) {
-                    adb.close();
-                    throw new IOException("O sistema pediu TLS; use a opção 'Depuração USB' normal.");
+                    throw new IOException("System requested TLS; use standard USB Debugging.");
                 }
                 if (m.command != AUTH || m.arg0 != AUTH_TOKEN) {
-                    adb.close();
-                    throw new IOException("Resposta inesperada do serviço ADB interno.");
+                    throw new IOException("Unexpected response from internal ADB.");
                 }
-
-                // Tenta autenticar com a chave já salva
-                adb.send(AUTH, AUTH_SIGNATURE, 0, sign(keys.getPrivate(), m.data));
-                m = adb.read();
-                if (m.command == CNXN) {
-                    s.setSoTimeout(15000);
-                    return adb;
-                }
-
-                // Chave ainda não autorizada: envia chave pública para exibir o popup na TV
-                if (!notified && listener != null) {
-                    notified = true;
-                    listener.onWaitingApproval();
-                }
-                adb.send(AUTH, AUTH_RSAPUBLICKEY, 0, publicKeyBlob(keys.getPublic()));
-                try {
-                    s.setSoTimeout(3000);
-                    m = adb.read();
-                    if (m.command == CNXN) {
-                        s.setSoTimeout(15000);
-                        return adb;
+                if (!signed) {
+                    adb.send(AUTH, AUTH_SIGNATURE, 0, sign(keys.getPrivate(), m.data));
+                    signed = true;
+                } else if (!offeredKey) {
+                    if (listener == null) {
+                        throw new IOException("ADB key not permanently authorized yet.");
                     }
-                } catch (SocketTimeoutException ignored) {
-                    // Em Android 10, quando o usuário clica em OK a chave é gravada em adb_keys;
-                    // a próxima tentativa do loop autentica instantaneamente com AUTH_SIGNATURE!
+                    adb.send(AUTH, AUTH_RSAPUBLICKEY, 0, publicKeyBlob(keys.getPublic()));
+                    offeredKey = true;
+                    listener.onWaitingApproval();
+                    s.setSoTimeout(approvalMs);
+                } else {
+                    throw new IOException("The TV rejected the app's ADB key.");
                 }
-                adb.close();
-                if (System.currentTimeMillis() >= deadline) {
-                    throw new IOException("A janela 'Permitir depuração USB?' não foi confirmada a tempo na tela da TV.");
-                }
-            } catch (IOException e) {
-                adb.close();
-                if (System.currentTimeMillis() >= deadline) throw e;
             }
+        } catch (IOException | RuntimeException e) {
+            adb.close();
+            throw e;
         }
     }
 
@@ -144,7 +136,7 @@ final class LocalAdb implements Closeable {
                 result.write(m.data);
                 send(OKAY, local, m.arg0, null);
             } else if (m.command == CLSE) {
-                if (remote == 0 && m.arg0 == 0) throw new IOException("Comando recusado pelo ADB");
+                if (remote == 0 && m.arg0 == 0) throw new IOException("Command rejected by ADB");
                 send(CLSE, local, m.arg0, null);
                 return result.toString("UTF-8");
             }
@@ -167,8 +159,8 @@ final class LocalAdb implements Closeable {
         int length = b.getInt();
         b.getInt();
         int magic = b.getInt();
-        if ((m.command ^ 0xffffffff) != magic) throw new IOException("Mensagem ADB inválida");
-        if (length < 0 || length > 1024 * 1024) throw new IOException("Mensagem ADB muito grande");
+        if ((m.command ^ 0xffffffff) != magic) throw new IOException("Invalid ADB message");
+        if (length < 0 || length > 1024 * 1024) throw new IOException("ADB message too large");
         m.data = new byte[length];
         in.readFully(m.data);
         return m;
@@ -203,7 +195,7 @@ final class LocalAdb implements Closeable {
             writeFile(publicFile, pair.getPublic().getEncoded());
             return pair;
         } catch (GeneralSecurityException e) {
-            throw new IOException("Chave ADB: " + e.getMessage());
+            throw new IOException("ADB Key: " + e.getMessage());
         }
     }
 
@@ -219,7 +211,7 @@ final class LocalAdb implements Closeable {
             cipher.init(Cipher.ENCRYPT_MODE, key);
             return cipher.doFinal(block);
         } catch (GeneralSecurityException e) {
-            throw new IOException("Assinatura ADB: " + e.getMessage());
+            throw new IOException("ADB Sign: " + e.getMessage());
         }
     }
 
@@ -235,8 +227,7 @@ final class LocalAdb implements Closeable {
         b.put(littleEndian(n, 256));
         b.put(littleEndian(rr, 256));
         b.putInt(rsa.getPublicExponent().intValue());
-        String text = Base64.encodeToString(b.array(), Base64.NO_WRAP) + " vacina-tvbox@local\0";
-        return text.getBytes(StandardCharsets.US_ASCII);
+        return (Base64.encodeToString(b.array(), Base64.NO_WRAP) + " vacina-tvbox@local\0").getBytes(StandardCharsets.US_ASCII);
     }
 
     private static byte[] littleEndian(BigInteger value, int size) {
@@ -262,6 +253,6 @@ final class LocalAdb implements Closeable {
             out.write(data);
             out.getFD().sync();
         }
-        if (!tmp.renameTo(f)) throw new IOException("Não foi possível salvar " + f.getName());
+        if (!tmp.renameTo(f)) throw new IOException("Could not save " + f.getName());
     }
 }

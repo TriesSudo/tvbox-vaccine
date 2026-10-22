@@ -24,16 +24,18 @@ import android.widget.TextView;
 public class MainActivity extends Activity {
     private static final int REQ_VPN = 101;
 
-    private static final String C_BG = "#080B10";
-    private static final String C_SURFACE = "#101620";
-    private static final String C_ELEVATED = "#182130";
-    private static final String C_BORDER = "#243146";
-    private static final String C_TEXT = "#F3F6FA";
-    private static final String C_MUTED = "#94A3B8";
+    // Impeccable TV Dark Design Palette (WCAG AAA High-Contrast)
+    private static final String C_BG = "#0B0F17";
+    private static final String C_SURFACE = "#111827";
+    private static final String C_CARD = "#172033";
+    private static final String C_CARD_HOVER = "#1E2C44";
+    private static final String C_BORDER = "#28354D";
+    private static final String C_TEXT_PRIMARY = "#F8FAFC";
+    private static final String C_TEXT_SECONDARY = "#94A3B8";
     private static final String C_EMERALD = "#10B981";
+    private static final String C_CYAN = "#38BDF8";
     private static final String C_AMBER = "#F59E0B";
     private static final String C_ROSE = "#F43F5E";
-    private static final String C_CYAN = "#38BDF8";
     private static final String C_PINK = "#EC4899";
 
     private TextView appTitle, appSub;
@@ -57,16 +59,16 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(Color.parseColor(C_BG));
         root.setPadding(dp(22), dp(14), dp(22), dp(14));
 
-        // 1. TOP BAR: Logo + Title + 3-Step Pipeline + Language Toggle
+        // 1. TOP HEADER BAR: Logo + Brand + Pipeline Stages + Language Switcher
         LinearLayout topBar = new LinearLayout(this);
         topBar.setOrientation(LinearLayout.HORIZONTAL);
         topBar.setGravity(Gravity.CENTER_VERTICAL);
-        topBar.setBackground(box(C_SURFACE, C_BORDER, 10, 1));
+        topBar.setBackground(box(C_SURFACE, C_BORDER, 8, 1));
         topBar.setPadding(dp(14), dp(8), dp(14), dp(8));
 
         ImageView logoView = new ImageView(this);
         logoView.setImageResource(R.drawable.ic_launcher);
-        LinearLayout.LayoutParams logoLp = new LinearLayout.LayoutParams(dp(40), dp(40));
+        LinearLayout.LayoutParams logoLp = new LinearLayout.LayoutParams(dp(42), dp(42));
         logoLp.setMargins(0, 0, dp(12), 0);
         topBar.addView(logoView, logoLp);
 
@@ -75,13 +77,13 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams titleLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
         appTitle = new TextView(this);
-        appTitle.setTextColor(Color.parseColor(C_TEXT));
+        appTitle.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
         appTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16.5f);
         appTitle.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         titleCol.addView(appTitle);
 
         appSub = new TextView(this);
-        appSub.setTextColor(Color.parseColor(C_MUTED));
+        appSub.setTextColor(Color.parseColor(C_TEXT_SECONDARY));
         appSub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         titleCol.addView(appSub);
         topBar.addView(titleCol, titleLp);
@@ -103,15 +105,17 @@ public class MainActivity extends Activity {
         btnLang = new Button(this);
         btnLang.setId(1007);
         btnLang.setAllCaps(false);
-        btnLang.setTextColor(Color.parseColor(C_TEXT));
+        btnLang.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
         btnLang.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         btnLang.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        btnLang.setBackground(box(C_ELEVATED, C_PINK, 6, 1));
-        btnLang.setPadding(dp(10), dp(4), dp(10), dp(4));
+        btnLang.setBackground(box(C_CARD, C_CYAN, 6, 1));
+        btnLang.setPadding(dp(12), dp(4), dp(12), dp(4));
         btnLang.setFocusable(true);
         btnLang.setFocusableInTouchMode(true);
         btnLang.setOnFocusChangeListener((v, hasFocus) -> {
-            btnLang.setBackground(box(hasFocus ? "#4A154B" : C_ELEVATED, C_PINK, 6, hasFocus ? 2 : 1));
+            btnLang.setBackground(box(hasFocus ? "#0C4A6E" : C_CARD, C_CYAN, 6, hasFocus ? 3 : 1));
+            btnLang.setScaleX(hasFocus ? 1.04f : 1.0f);
+            btnLang.setScaleY(hasFocus ? 1.04f : 1.0f);
         });
         btnLang.setOnClickListener(v -> {
             if (busy) return;
@@ -120,17 +124,17 @@ public class MainActivity extends Activity {
             runTask(cb -> ShieldEngine.scanSystem(this, cb));
         });
         LinearLayout.LayoutParams langLp = new LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.WRAP_CONTENT, dp(32));
-        langLp.setMargins(dp(10), 0, 0, 0);
+            LinearLayout.LayoutParams.WRAP_CONTENT, dp(34));
+        langLp.setMargins(dp(12), 0, 0, 0);
         stepsRow.addView(btnLang, langLp);
 
         topBar.addView(stepsRow);
         root.addView(topBar);
 
-        // 2. HERO TELEMETRY: Progress Bar + Live Status + 3 Score Pills
+        // 2. HERO TELEMETRY: Live Status + Progress Bar + 3 Metrics Cards
         LinearLayout hero = new LinearLayout(this);
         hero.setOrientation(LinearLayout.VERTICAL);
-        hero.setBackground(box(C_SURFACE, C_BORDER, 10, 1));
+        hero.setBackground(box(C_SURFACE, C_BORDER, 8, 1));
         hero.setPadding(dp(16), dp(10), dp(16), dp(10));
         LinearLayout.LayoutParams heroLp = new LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
@@ -145,13 +149,13 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams stLp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
 
         liveHeadline = new TextView(this);
-        liveHeadline.setTextColor(Color.parseColor(C_TEXT));
+        liveHeadline.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
         liveHeadline.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         liveHeadline.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         statusTextCol.addView(liveHeadline);
 
         liveSubline = new TextView(this);
-        liveSubline.setTextColor(Color.parseColor(C_MUTED));
+        liveSubline.setTextColor(Color.parseColor(C_TEXT_SECONDARY));
         liveSubline.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         liveSubline.setPadding(0, dp(2), 0, 0);
         statusTextCol.addView(liveSubline);
@@ -160,7 +164,7 @@ public class MainActivity extends Activity {
         livePercent = new TextView(this);
         livePercent.setText("0%");
         livePercent.setTextColor(Color.parseColor(C_EMERALD));
-        livePercent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 17);
+        livePercent.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
         livePercent.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
         livePercent.setPadding(dp(12), 0, 0, 0);
         statusHeader.addView(livePercent);
@@ -194,7 +198,7 @@ public class MainActivity extends Activity {
         hero.addView(metricsRow);
         root.addView(hero, heroLp);
 
-        // 3. BODY: Action Column (Left) + Forensic Console (Right)
+        // 3. MAIN WORKSPACE: Button Action Column (Left) + Audit Terminal (Right)
         LinearLayout body = new LinearLayout(this);
         body.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams bodyLp = new LinearLayout.LayoutParams(
@@ -203,15 +207,15 @@ public class MainActivity extends Activity {
         LinearLayout leftCol = new LinearLayout(this);
         leftCol.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams leftLp = new LinearLayout.LayoutParams(
-            dp(310), LinearLayout.LayoutParams.MATCH_PARENT);
+            dp(320), LinearLayout.LayoutParams.MATCH_PARENT);
         leftLp.setMargins(0, 0, dp(12), 0);
 
-        btnMainFlow = makeActionButton("#0D3B2E", C_EMERALD, true);
-        btnScanOnly = makeActionButton(C_ELEVATED, C_CYAN, false);
-        btnTestOnly = makeActionButton(C_ELEVATED, C_CYAN, false);
-        btnUnitManage = makeActionButton(C_ELEVATED, C_AMBER, false);
-        btnUndoAll = makeActionButton("#2D1219", C_ROSE, false);
-        btnDonateUpdates = makeActionButton("#2A1228", C_PINK, false);
+        btnMainFlow = makeActionButton("#064E3B", C_EMERALD, true);
+        btnScanOnly = makeActionButton(C_CARD, C_CYAN, false);
+        btnTestOnly = makeActionButton(C_CARD, C_CYAN, false);
+        btnUnitManage = makeActionButton(C_CARD, C_AMBER, false);
+        btnUndoAll = makeActionButton("#3B1219", C_ROSE, false);
+        btnDonateUpdates = makeActionButton("#381335", C_PINK, false);
 
         btnMainFlow.setId(1001);
         btnScanOnly.setId(1002);
@@ -239,14 +243,14 @@ public class MainActivity extends Activity {
         scrollView.setFocusableInTouchMode(true);
         LinearLayout.LayoutParams rightLp = new LinearLayout.LayoutParams(
             0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-        scrollView.setBackground(box(C_SURFACE, C_BORDER, 10, 2));
+        scrollView.setBackground(box(C_SURFACE, C_BORDER, 8, 2));
         scrollView.setPadding(dp(16), dp(12), dp(16), dp(12));
         scrollView.setOnFocusChangeListener((v, hasFocus) -> {
-            scrollView.setBackground(box(C_SURFACE, hasFocus ? C_CYAN : C_BORDER, 10, hasFocus ? 3 : 2));
+            scrollView.setBackground(box(C_SURFACE, hasFocus ? C_CYAN : C_BORDER, 8, hasFocus ? 3 : 2));
         });
 
         outputView = new TextView(this);
-        outputView.setTextColor(Color.parseColor(C_TEXT));
+        outputView.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
         outputView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
         outputView.setTypeface(Typeface.MONOSPACE);
         outputView.setLineSpacing(dp(2), 1.05f);
@@ -255,7 +259,7 @@ public class MainActivity extends Activity {
 
         root.addView(body, bodyLp);
 
-        // Explicit D-Pad Navigation
+        // TV Remote D-Pad Navigation Mapping
         btnMainFlow.setNextFocusUpId(1007);
         btnMainFlow.setNextFocusDownId(1002);
         btnScanOnly.setNextFocusUpId(1001);
@@ -296,58 +300,54 @@ public class MainActivity extends Activity {
 
     private void refreshLocalizedLabels() {
         appTitle.setText(ShieldEngine.tr(
-            "TV Box Vaccine v" + ShieldEngine.APP_VERSION + "  ·  by " + ShieldEngine.AUTHOR_NAME,
-            "Vacina TV Box v" + ShieldEngine.APP_VERSION + "  ·  por " + ShieldEngine.AUTHOR_NAME
+            "TV Box Vaccine v" + ShieldEngine.APP_VERSION + "  -  by " + ShieldEngine.AUTHOR_NAME,
+            "Vacina TV Box v" + ShieldEngine.APP_VERSION + "  -  por " + ShieldEngine.AUTHOR_NAME
         ));
         appSub.setText(ShieldEngine.tr(
-            "Anti-Residential Proxy Shield, Daemon Killer & Silent Installer Blocker  ·  triessudo.zip",
-            "Escudo Anti-Proxy Residencial, Desligamento de Daemons e Bloqueio de Instaladores  ·  triessudo.zip"
+            "Anti-Residential Proxy Shield, Daemon Killer & Silent Installer Blocker - triessudo.zip",
+            "Escudo Anti-Proxy Residencial, Desligamento de Daemons e Bloqueio de Instaladores - triessudo.zip"
         ));
-        step1Badge.setText(ShieldEngine.tr("1. Analyze", "1. Analisar"));
-        step2Badge.setText(ShieldEngine.tr("2. Vaccinate + Block", "2. Vacinar + Bloquear"));
-        step3Badge.setText(ShieldEngine.tr("3. Test Block", "3. Testar Bloqueio"));
-        btnLang.setText(ShieldEngine.isPt() ? "🌐 PT-BR (Mudar p/ EN)" : "🌐 EN-US (Switch to PT)");
+        step1Badge.setText(ShieldEngine.tr("STEP 1: ANALYZE", "ETAPA 1: ANALISAR"));
+        step2Badge.setText(ShieldEngine.tr("STEP 2: VACCINATE", "ETAPA 2: VACINAR"));
+        step3Badge.setText(ShieldEngine.tr("STEP 3: TEST AUDIT", "ETAPA 3: AUDITORIA"));
+        btnLang.setText(ShieldEngine.isPt() ? "PT-BR  |  SWITCH TO EN" : "EN-US  |  MUDAR PARA PT");
 
         btnMainFlow.setText(ShieldEngine.tr(
-            "1. Analyze + Vaccinate + Test\nRuns full step-by-step protection and verifies block",
-            "1. Analisar + Vacinar + Testar\nExecuta todo o passo a passo e verifica no final"
+            "1. Analyze + Vaccinate + Test\nExecute full pipeline: scan, stop proxy daemons & verify",
+            "1. Analisar + Vacinar + Testar\nExecuta todo o pipeline: scan, parar daemons e verificar"
         ));
         btnScanOnly.setText(ShieldEngine.tr(
-            "2. Analyze System Only\nShows current diagnostics without changing anything",
-            "2. Apenas Analisar Sistema\nMostra o diagnóstico atual sem alterar nada"
+            "2. Analyze System Only\nInspect running daemons and routes without making changes",
+            "2. Apenas Analisar Sistema\nInspeciona daemons e rotas atuais sem alterar nada"
         ));
         btnTestOnly.setText(ShieldEngine.tr(
-            "3. Test Blocking Only\nProves native daemons and C2 routes are blocked",
-            "3. Apenas Testar Bloqueio\nProva que processos e rotas C2 estão barrados"
+            "3. Test Blocking Only\nVerify on-device TCP socket blocks and daemon status",
+            "3. Apenas Testar Bloqueio\nVerifica bloqueios reais de sockets TCP e estado dos daemons"
         ));
         btnUnitManage.setText(ShieldEngine.tr(
-            "4. Undo / Manage Single Item\nChoose which app or store to unlock/freeze 1 by 1",
-            "4. Desfazer / Gerenciar Item Unitário\nEscolha qual app/loja liberar ou congelar 1 a 1"
+            "4. Manage Single App\nChoose individual hidden installer to freeze or unlock",
+            "4. Gerenciar App Unitario\nEscolha instalador especifico para congelar ou liberar"
         ));
         btnUndoAll.setText(ShieldEngine.tr(
-            "5. Undo All Protections (Risk)\nReverts vaccine and restores factory behavior",
-            "5. Desfazer Todo o Processo (Risco)\nReverte toda a vacina e restaura estado de fábrica"
+            "5. Undo All Protections (Risk)\nRevert vaccine and restore original factory behavior",
+            "5. Desfazer Tudo (Risco)\nReverte todas as protecoes e restaura padrao de fabrica"
         ));
         btnDonateUpdates.setText(ShieldEngine.tr(
-            "6. 💖 Donate (QR Codes) & Updates\nSupport Suzan (@TriesSudo) · triessudo.zip",
-            "6. 💖 Doar (QR Codes) e Atualizações\nApoie Suzan (@TriesSudo) · triessudo.zip"
+            "6. Donate (Crypto QR) & Info\nSupport Suzan (@TriesSudo) - triessudo.zip",
+            "6. Doar (QR Cripto) e Info\nApoie Suzan (@TriesSudo) - triessudo.zip"
         ));
     }
 
-    /**
-     * Option 6: Displays a visual dialog with the 3 hardcoded crypto QR codes (BTC, ETH, SOL),
-     * wallet addresses, and Suzan's official website (triessudo.zip) for more coins.
-     */
     private void showDonateQrModal() {
         LinearLayout modal = new LinearLayout(this);
         modal.setOrientation(LinearLayout.VERTICAL);
-        modal.setBackgroundColor(Color.parseColor("#0D111A"));
-        modal.setPadding(dp(18), dp(14), dp(18), dp(10));
+        modal.setBackgroundColor(Color.parseColor("#0F172A"));
+        modal.setPadding(dp(20), dp(16), dp(20), dp(14));
 
         TextView header = new TextView(this);
         header.setText(ShieldEngine.tr(
-            "💖 Support Suzan (@TriesSudo) — Help keep this project free & fighting malware!",
-            "💖 Apoie Suzan (@TriesSudo) — Ajude a manter este projeto gratuito contra malwares!"
+            "Support Suzan (@TriesSudo) - Anti-Malware Research & Updates",
+            "Apoie Suzan (@TriesSudo) - Pesquisa Anti-Malware e Atualizacoes"
         ));
         header.setTextColor(Color.parseColor("#F472B6"));
         header.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
@@ -356,25 +356,25 @@ public class MainActivity extends Activity {
 
         TextView sub = new TextView(this);
         sub.setText(ShieldEngine.tr(
-            "If this tool protected your TV Box and home network, please consider donating any amount by scanning a QR Code below.\n" +
-            "🌐 More coins, updates & projects at: https://triessudo.zip   |   ✉️ Contact: triessudo@atomicmail.io   |   Telegram: t.me/triessudo",
-            "Se esta ferramenta protegeu sua TV Box e sua rede, considere doar qualquer valor escaneando um dos QR Codes abaixo.\n" +
-            "🌐 Mais moedas, atualizações e projetos em: https://triessudo.zip   |   ✉️ Contato: triessudo@atomicmail.io   |   Telegram: t.me/triessudo"
+            "If this tool protected your TV Box and residential network, consider donating to keep this work free.\n" +
+            "Site: https://triessudo.zip   |   Email: triessudo@atomicmail.io   |   Telegram: t.me/triessudo",
+            "Se esta ferramenta protegeu sua TV Box e sua rede residencial, considere apoiar para manter o projeto livre.\n" +
+            "Site: https://triessudo.zip   |   Email: triessudo@atomicmail.io   |   Telegram: t.me/triessudo"
         ));
-        sub.setTextColor(Color.parseColor(C_TEXT));
+        sub.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
         sub.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
-        sub.setPadding(0, dp(4), 0, dp(10));
+        sub.setPadding(0, dp(4), 0, dp(12));
         modal.addView(sub);
 
         LinearLayout cardsRow = new LinearLayout(this);
         cardsRow.setOrientation(LinearLayout.HORIZONTAL);
         cardsRow.setGravity(Gravity.CENTER);
 
-        cardsRow.addView(makeQrCard("Bitcoin (BTC)", ShieldEngine.WALLET_BTC, R.drawable.donate_btc, "#F59E0B"),
+        cardsRow.addView(makeQrCard("BTC - Bitcoin", ShieldEngine.WALLET_BTC, R.drawable.donate_btc, "#F59E0B"),
             new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        cardsRow.addView(makeQrCard("Ethereum (ETH)", ShieldEngine.WALLET_ETH, R.drawable.donate_eth, "#818CF8"),
+        cardsRow.addView(makeQrCard("ETH - Ethereum", ShieldEngine.WALLET_ETH, R.drawable.donate_eth, "#818CF8"),
             new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
-        cardsRow.addView(makeQrCard("Solana (SOL)", ShieldEngine.WALLET_SOL, R.drawable.donate_sol, "#34D399"),
+        cardsRow.addView(makeQrCard("SOL - Solana", ShieldEngine.WALLET_SOL, R.drawable.donate_sol, "#34D399"),
             new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f));
 
         modal.addView(cardsRow);
@@ -389,7 +389,7 @@ public class MainActivity extends Activity {
         LinearLayout card = new LinearLayout(this);
         card.setOrientation(LinearLayout.VERTICAL);
         card.setGravity(Gravity.CENTER_HORIZONTAL);
-        card.setBackground(box(C_SURFACE, accentHex, 8, 2));
+        card.setBackground(box(C_CARD, accentHex, 8, 2));
         card.setPadding(dp(8), dp(8), dp(8), dp(8));
 
         TextView t = new TextView(this);
@@ -409,7 +409,7 @@ public class MainActivity extends Activity {
         TextView addr = new TextView(this);
         addr.setText(address);
         addr.setGravity(Gravity.CENTER);
-        addr.setTextColor(Color.parseColor(C_MUTED));
+        addr.setTextColor(Color.parseColor(C_TEXT_SECONDARY));
         addr.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9.5f);
         addr.setTypeface(Typeface.MONOSPACE);
         card.addView(addr);
@@ -429,13 +429,13 @@ public class MainActivity extends Activity {
             boolean en = ShieldEngine.isPackageEnabled(this, pkg);
             currentEnabled[i] = en;
             String badge = en
-                ? ShieldEngine.tr("🔓 [UNLOCKED - Click to Freeze] ", "🔓 [LIBERADO - Clique p/ Congelar] ")
-                : ShieldEngine.tr("🔒 [FROZEN - Click to Undo] ", "🔒 [CONGELADO - Clique p/ Desfazer] ");
+                ? ShieldEngine.tr("[UNLOCKED] Click to Freeze ", "[LIBERADO] Clique p/ Congelar ")
+                : ShieldEngine.tr("[FROZEN] Click to Undo ", "[CONGELADO] Clique p/ Desfazer ");
             items[i] = badge + "\n" + desc + " (" + pkg + ")";
         }
 
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle(ShieldEngine.tr("4. Manage or Undo Single Package Block", "4. Gerenciar ou Desfazer Bloqueio de Forma Unitária"))
+            .setTitle(ShieldEngine.tr("4. Manage Single Package (Freeze or Unlock)", "4. Gerenciar Pacote Unitario (Congelar ou Liberar)"))
             .setItems(items, (dialog, which) -> {
                 String pkg = ShieldEngine.RISKY_PACKAGES[which][0];
                 String desc = ShieldEngine.pkgDesc(which);
@@ -449,22 +449,22 @@ public class MainActivity extends Activity {
     private void showUndoAllWarningDialog() {
         if (busy) return;
         new AlertDialog.Builder(this, android.R.style.Theme_DeviceDefault_Dialog_Alert)
-            .setTitle(ShieldEngine.tr("⚠️ WARNING: Security Risk When Undoing All", "⚠️ ATENÇÃO: Risco de Segurança ao Desfazer Tudo"))
+            .setTitle(ShieldEngine.tr("[WARNING] Revert All Protections", "[AVISO] Risco ao Desfazer Toda a Vacina"))
             .setMessage(ShieldEngine.tr(
-                "Are you sure you want to undo the entire vaccination process?\n\n" +
+                "Are you sure you want to revert all protections?\n\n" +
                 "WHAT WILL HAPPEN IF YOU CONTINUE:\n" +
-                "• The Local Anti-Proxy Shield (VPN) will be turned off;\n" +
-                "• Residential proxy daemons (/system/bin/pandoraspear and /system/bin/pcdn) will resume using your internet and residential IP;\n" +
-                "• All 8 hidden factory installers will become active in the background again.\n\n" +
+                "- The Local Anti-Proxy Shield (VPN) will be turned off;\n" +
+                "- Residential proxy daemons (/system/bin/pandoraspear and /system/bin/pcdn) will resume background operation;\n" +
+                "- All silent background APK installers will become active again.\n\n" +
                 "Do you really want to accept the risk and revert everything?",
-                "Tem certeza que deseja desfazer todo o processo de vacinação?\n\n" +
-                "O QUE ACONTECERÁ SE VOCÊ CONTINUAR:\n" +
-                "• O Filtro Local Anti-Proxy (VPN) será desligado;\n" +
-                "• Os processos de proxy residencial (/system/bin/pandoraspear e /system/bin/pcdn) voltarão a usar sua internet e seu IP residencial;\n" +
-                "• Os 8 instaladores ocultos de fábrica voltarão a ficar ativos em segundo plano.\n\n" +
-                "Deseja mesmo assumir o risco e reverter tudo?"
+                "Tem certeza que deseja desfazer todo o processo de vacinacao?\n\n" +
+                "O QUE ACONTECERA SE VOCE CONTINUAR:\n" +
+                "- O Filtro Local Anti-Proxy (VPN) sera desligado;\n" +
+                "- Os processos de proxy residencial (/system/bin/pandoraspear e /system/bin/pcdn) voltarao a rodar em segundo plano;\n" +
+                "- Os instaladores silenciosos voltarao a ficar ativos.\n\n" +
+                "Deseja assumir o risco e reverter tudo?"
             ))
-            .setPositiveButton(ShieldEngine.tr("⚠️ Yes, Undo All (Accept Risk)", "⚠️ Sim, Desfazer Tudo (Assumir Risco)"), (d, w) -> {
+            .setPositiveButton(ShieldEngine.tr("Yes, Revert All (Accept Risk)", "Sim, Desfazer Tudo (Assumir Risco)"), (d, w) -> {
                 runTask(cb -> ShieldEngine.undoAllProtections(this, cb));
             })
             .setNegativeButton(ShieldEngine.tr("Cancel (Keep Protected)", "Cancelar (Manter Protegido)"), null)
@@ -478,11 +478,11 @@ public class MainActivity extends Activity {
             if (vpn != null) {
                 liveHeadline.setText(ShieldEngine.tr(
                     "Confirm on screen: Local Shield Permission (VPN)",
-                    "Confirme na tela: Permissão de Filtro Local (VPN)"
+                    "Confirme na tela: Permissao de Filtro Local (VPN)"
                 ));
                 liveSubline.setText(ShieldEngine.tr(
-                    "Android will show a VPN connection prompt. This is our internal on-device filter: select OK.",
-                    "O Android mostrará um aviso de conexão VPN. Trata-se do nosso filtro interno: selecione OK."
+                    "Android will show a VPN connection prompt. Select OK to activate the local sinkhole filter.",
+                    "O Android mostrara um aviso de conexao VPN. Selecione OK para ativar o filtro sinkhole local."
                 ));
                 startActivityForResult(vpn, REQ_VPN);
                 return;
@@ -516,7 +516,7 @@ public class MainActivity extends Activity {
                 });
             } catch (Throwable t) {
                 runOnUiThread(() -> {
-                    liveHeadline.setText(ShieldEngine.tr("Error during operation", "Erro durante a operação"));
+                    liveHeadline.setText(ShieldEngine.tr("Error during operation", "Erro durante a operacao"));
                     liveSubline.setText(String.valueOf(t.getMessage()));
                     outputView.setText("Error details:\n" + t);
                     busy = false;
@@ -564,31 +564,31 @@ public class MainActivity extends Activity {
     private TextView makeStepChip(String label) {
         TextView tv = new TextView(this);
         tv.setText(label);
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11f);
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10.5f);
         tv.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
-        tv.setPadding(dp(8), dp(4), dp(8), dp(4));
+        tv.setPadding(dp(10), dp(4), dp(10), dp(4));
         styleStepChip(tv, false, false);
         return tv;
     }
 
     private void styleStepChip(TextView tv, boolean active, boolean done) {
         if (active) {
-            tv.setTextColor(Color.parseColor(C_TEXT));
-            tv.setBackground(box("#0D3B2E", C_EMERALD, 6, 2));
+            tv.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
+            tv.setBackground(box("#065F46", C_EMERALD, 6, 2));
         } else if (done) {
             tv.setTextColor(Color.parseColor(C_EMERALD));
-            tv.setBackground(box(C_ELEVATED, "#065F46", 6, 1));
+            tv.setBackground(box(C_CARD, "#047857", 6, 1));
         } else {
-            tv.setTextColor(Color.parseColor(C_MUTED));
-            tv.setBackground(box(C_ELEVATED, C_BORDER, 6, 1));
+            tv.setTextColor(Color.parseColor(C_TEXT_SECONDARY));
+            tv.setBackground(box(C_CARD, C_BORDER, 6, 1));
         }
     }
 
     private TextView makeArrow() {
         TextView tv = new TextView(this);
-        tv.setText(" › ");
-        tv.setTextColor(Color.parseColor(C_MUTED));
-        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        tv.setText(" > ");
+        tv.setTextColor(Color.parseColor(C_TEXT_SECONDARY));
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11);
         return tv;
     }
 
@@ -596,10 +596,10 @@ public class MainActivity extends Activity {
         TextView tv = new TextView(this);
         tv.setText(text);
         tv.setGravity(Gravity.CENTER);
-        tv.setTextColor(Color.parseColor(C_MUTED));
+        tv.setTextColor(Color.parseColor(C_TEXT_SECONDARY));
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f);
         tv.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
-        tv.setBackground(box(C_ELEVATED, C_BORDER, 6, 1));
+        tv.setBackground(box(C_CARD, C_BORDER, 6, 1));
         tv.setPadding(dp(8), dp(5), dp(8), dp(5));
         return tv;
     }
@@ -608,28 +608,28 @@ public class MainActivity extends Activity {
         Button b = new Button(this);
         b.setAllCaps(false);
         b.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
-        b.setTextColor(Color.parseColor(C_TEXT));
-        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, primary ? 11.5f : 10.8f);
+        b.setTextColor(Color.parseColor(C_TEXT_PRIMARY));
+        b.setTextSize(TypedValue.COMPLEX_UNIT_SP, primary ? 11.8f : 11f);
         b.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         b.setBackground(box(baseFillHex, primary ? accentHex : C_BORDER, 8, primary ? 2 : 1));
-        b.setPadding(dp(12), dp(5), dp(12), dp(5));
+        b.setPadding(dp(14), dp(6), dp(14), dp(6));
         b.setFocusable(true);
         b.setFocusableInTouchMode(true);
         b.setOnFocusChangeListener((View v, boolean hasFocus) -> {
             b.setBackground(box(
-                hasFocus ? (primary ? "#115E46" : "#1E293B") : baseFillHex,
+                hasFocus ? (primary ? "#047857" : C_CARD_HOVER) : baseFillHex,
                 hasFocus ? accentHex : (primary ? accentHex : C_BORDER),
                 8,
                 hasFocus ? 3 : (primary ? 2 : 1)
             ));
-            b.setScaleX(hasFocus ? 1.02f : 1.0f);
-            b.setScaleY(hasFocus ? 1.02f : 1.0f);
+            b.setScaleX(hasFocus ? 1.03f : 1.0f);
+            b.setScaleY(hasFocus ? 1.03f : 1.0f);
         });
         return b;
     }
 
     private Drawable makeProgressDrawable() {
-        GradientDrawable bg = box(C_ELEVATED, C_BORDER, 5, 1);
+        GradientDrawable bg = box(C_CARD, C_BORDER, 5, 1);
         GradientDrawable fg = new GradientDrawable(
             GradientDrawable.Orientation.LEFT_RIGHT,
             new int[]{Color.parseColor("#059669"), Color.parseColor("#10B981"), Color.parseColor("#34D399")}

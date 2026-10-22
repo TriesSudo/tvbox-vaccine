@@ -56,6 +56,7 @@ public class SinkholeVpnService extends VpnService {
     private synchronized void startDaemonWatchdog() {
         if (watchdogThread != null && watchdogThread.isAlive()) return;
         watchdogThread = new Thread(() -> {
+            try { Thread.sleep(15_000); } catch (InterruptedException e) { return; }
             while (!Thread.currentThread().isInterrupted()) {
                 try {
                     ShieldEngine.stopNativeMalwareDaemons(getApplicationContext());
