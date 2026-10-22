@@ -1,0 +1,28 @@
+# Built binaries and packages
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+
+# Build artifacts & caches
+build/
+bin/
+gen/
+out/
+.gradle/
+local.properties
+
+# Keystores & sensitive keys
+*.keystore
+*.jks
+*.key
+*.pk8
+
+# IDE and OS files
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+*.log
